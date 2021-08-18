@@ -3,81 +3,116 @@ package rest_errors
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 )
 
-type RestErr interface {
+// in case of failure. in this case not found http error
+// {
+// 	"status" : 404,
+// 	"error" : true,
+// 	"message" : "item not found",
+// 	"data" : {}
+// }
+
+// case of success
+// {
+// 	"status" : 200/201,
+// 	"error" : false,
+// 	"message" : "celebrating message!",
+// 	"data" : {
+//		"key" : "value"
+//		...
+//	}
+//}
+
+type RestResp interface {
 	Message() string
 	Status() int
-	Error() string
+	Error() bool
+	Data() interface{}
 }
 
-type restErr struct {
-	ErrMessage string        `json:"message"`
-	ErrStatus  int           `json:"status"`
-	ErrError   string        `json:"error"`
+type restResp struct {
+	RespMessage string      `json:"message"`
+	RespStatus  int         `json:"status"`
+	RespError   bool        `json:"error"`
+	RespData    interface{} `json:"data"`
 }
 
-func (e restErr) Error() string {
-	return fmt.Sprintf("message: %s - status: %d - error: %s - causes: %v",
-		e.ErrMessage, e.ErrStatus, e.ErrError)
+func (e restResp) Error() bool {
+	return e.RespError
 }
 
-func (e restErr) Message() string {
-	return e.ErrMessage
+func (e restResp) Message() string {
+	return e.RespMessage
 }
 
-func (e restErr) Status() int {
-	return e.ErrStatus
+func (e restResp) Status() int {
+	return e.RespStatus
 }
 
+func (e restResp) Data() interface{} {
+	return e.Data
+}
 
-func NewRestError(message string, status int, err string, ) RestErr {
-	return restErr{
-		ErrMessage: message,
-		ErrStatus:  status,
-		ErrError:   err,
+func NewRestResponse(message string, status int, err bool, data interface{}) RestResp {
+	return restResp{
+		RespMessage: message,
+		RespStatus:  status,
+		RespError:   err,
+		RespData:    data,
 	}
 }
 
-func NewRestErrorFromBytes(bytes []byte) (RestErr, error) {
-	var apiErr restErr
+func NewRestRespFromBytes(bytes []byte) (RestResp, error) {
+	var apiErr restResp
 	if err := json.Unmarshal(bytes, &apiErr); err != nil {
 		return nil, errors.New("invalid json")
 	}
 	return apiErr, nil
 }
 
-func NewBadRequestError(message string) RestErr {
-	return restErr{
-		ErrMessage: message,
-		ErrStatus:  http.StatusBadRequest,
-		ErrError:   "bad_request",
+func NewBadRequestError(message string, data interface{}) RestResp {
+	return restResp{
+		RespMessage: message,
+		RespStatus:  http.StatusBadRequest,
+		RespError:   true,
+		RespData:    data,
 	}
 }
 
-func NewNotFoundError(message string) RestErr {
-	return restErr{
-		ErrMessage: message,
-		ErrStatus:  http.StatusNotFound,
-		ErrError:   "not_found",
+func NewNotFoundError(message string, data interface{}) RestResp {
+	return restResp{
+		RespMessage: message,
+		RespStatus:  http.StatusNotFound,
+		RespError:   true,
+		RespData:    data,
 	}
 }
 
-func NewUnauthorizedError(message string) RestErr {
-	return restErr{
-		ErrMessage: message,
-		ErrStatus:  http.StatusUnauthorized,
-		ErrError:   "unauthorized",
+func NewUnauthorizedError(message string, data interface{}) RestResp {
+	return restResp{
+		RespMessage: message,
+		RespStatus:  http.StatusUnauthorized,
+		RespError:   true,
+		RespData:    data,
 	}
 }
 
-func NewInternalServerError(message string, err error) RestErr {
-	result := restErr{
-		ErrMessage: message,
-		ErrStatus:  http.StatusInternalServerError,
-		ErrError:   "internal_server_error",
+func NewInternalServerError(message string, data interface{}) RestResp {
+	return restResp{
+		RespMessage: message,
+		RespStatus:  http.StatusInternalServerError,
+		RespError:   true,
+		RespData:    data,
 	}
-	return result
+}
+
+func NewSuccessRespoonse(message string, data interface{}, status int) RestResp {
+	return restResp{
+		RespMessage: message,
+		RespStatus:  status,
+		RespError:   false,
+		RespData:    data,
+	}
 }
