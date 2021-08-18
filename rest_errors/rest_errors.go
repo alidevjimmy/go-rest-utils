@@ -108,7 +108,7 @@ func NewInternalServerError(message string, data interface{}) RestResp {
 	}
 }
 
-func NewSuccessRespoonse(message string, data interface{}, status int) RestResp {
+func NewSuccessResponse(message string, data interface{}, status int) RestResp {
 	return restResp{
 		RespMessage: message,
 		RespStatus:  status,
