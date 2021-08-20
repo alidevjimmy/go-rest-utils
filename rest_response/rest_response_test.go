@@ -1,4 +1,4 @@
-package rest_errors
+package rest_response
 
 import (
 	"testing"
