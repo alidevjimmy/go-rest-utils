@@ -52,7 +52,7 @@ func (e restResp) Status() int {
 }
 
 func (e restResp) Data() interface{} {
-	return e.Data
+	return e.RespData
 }
 
 func NewRestResponse(message string, status int, err bool, data interface{}) RestResp {
